@@ -1,0 +1,26 @@
+From: Nikolay Martynov <mar.kolya@gmail.com>
+Date: Tue, 9 May 2017 20:21:10 -0400
+Subject: Do not leak memory when tun was not created yet
+
+Packets pulled off incoming queue should be freed
+
+Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
+---
+ mainloop.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/mainloop.c b/mainloop.c
+index efe493a..e8e9a78 100644
+--- a/mainloop.c
++++ b/mainloop.c
+@@ -52,7 +52,9 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
+ 
+ 	if (!tun_is_up(vpninfo)) {
+ 		/* no tun yet, clear any queued packets */
+-		while ((this = dequeue_packet(&vpninfo->incoming_queue)));
++		while ((this = dequeue_packet(&vpninfo->incoming_queue))) {
++			free(this);
++		}
+ 		return 0;
+ 	}
+ 

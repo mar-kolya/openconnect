@@ -1,0 +1,63 @@
+From: Nikolay Martynov <mar.kolya@gmail.com>
+Date: Tue, 9 May 2017 20:23:02 -0400
+Subject: Do not try to establish DTLS on reconnect
+
+Currently when TCP SSL fails reconnect attempt happens. This attempts tries to establish DTLS connection regadless if it existed before. Code ends up in infinite loop doing that.
+This changes fixes this by disabling DTLS at startup if DTLS connection cannot be established.
+Also change ESP handling code to not reenable DTLS on ESP close.
+
+Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
+---
+ dtls.c | 4 ++++
+ esp.c  | 3 ++-
+ main.c | 7 ++++++-
+ 3 files changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/dtls.c b/dtls.c
+index df104ed..28088fb 100644
+--- a/dtls.c
++++ b/dtls.c
+@@ -154,6 +154,10 @@ void dtls_close(struct openconnect_info *vpninfo)
+ static int dtls_reconnect(struct openconnect_info *vpninfo)
+ {
+ 	dtls_close(vpninfo);
++
++	if (vpninfo->dtls_state == DTLS_DISABLED)
++		return -EINVAL;
++
+ 	vpninfo->dtls_state = DTLS_SLEEPING;
+ 	return connect_dtls_socket(vpninfo);
+ }
+diff --git a/esp.c b/esp.c
+index 44c9407..57ff6cf 100644
+--- a/esp.c
++++ b/esp.c
+@@ -341,7 +341,8 @@ void esp_close(struct openconnect_info *vpninfo)
+ 		unmonitor_except_fd(vpninfo, dtls);
+ 		vpninfo->dtls_fd = -1;
+ 	}
+-	vpninfo->dtls_state = DTLS_SLEEPING;
++	if (vpninfo->dtls_state > DTLS_DISABLED)
++		vpninfo->dtls_state = DTLS_SLEEPING;
+ }
+ 
+ void esp_shutdown(struct openconnect_info *vpninfo)
+diff --git a/main.c b/main.c
+index 71be303..b7ef303 100644
+--- a/main.c
++++ b/main.c
+@@ -1521,8 +1521,13 @@ int main(int argc, char **argv)
+ 	STRDUP(vpninfo->vpnc_script, vpnc_script);
+ 
+ 	if (vpninfo->dtls_state != DTLS_DISABLED &&
+-	    openconnect_setup_dtls(vpninfo, 60))
++	    openconnect_setup_dtls(vpninfo, 60)) {
++		/* Disable DTLS if we cannot set it up, otherwise
++		reconnects end up in infinite loop trying to connect
++		to non existing DTLS */
++		vpninfo->dtls_state = DTLS_DISABLED;
+ 		fprintf(stderr, _("Set up DTLS failed; using SSL instead\n"));
++	}
+ 
+ 	openconnect_get_ip_info(vpninfo, &ip_info, NULL, NULL);
+ 

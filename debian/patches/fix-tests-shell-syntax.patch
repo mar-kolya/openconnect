@@ -1,18 +1,14 @@
-Description: tests: avoid using eval with variable assignments
- .
- For shell portability, avoid using eval with variable assignments to set
- openconnect's environment. Shell implementations vary on whether
- variable assignments in front of eval are marked as environment
- variables or just treated as ordinary shell assignments.
- .
- Every call to $OPENCONNECT already has LD_PRELOAD=libsocket_wrapper.so
- in front of it, so the "eval LD_PRELOAD=libsocket_wrapper.so" was
- redundant anyway.
-Author: Mike Miller <mtmiller@debian.org>
-Origin: upstream, http://git.infradead.org/users/dwmw2/openconnect.git/commitdiff/8a3503350f819f4190a9b05fd613ad08a5c8bf8c
-Last-Update: 2016-12-24
+From: Mike Miller <mtmiller@debian.org>
+Date: Tue, 9 May 2017 21:15:42 -0400
+Subject: fix-tests-shell-syntax
+
 ---
-This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+ tests/auth-pkcs11 | 2 +-
+ tests/common.sh   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/auth-pkcs11 b/tests/auth-pkcs11
+index adc40f5..5e9bab7 100755
 --- a/tests/auth-pkcs11
 +++ b/tests/auth-pkcs11
 @@ -37,7 +37,7 @@ for TOKEN in ${pkcs11_tokens}; do
@@ -24,6 +20,8 @@ This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
  	    fail $PID "Could not connect with token ${TOKEN} key ${KEY##*/}!"
      done
  done
+diff --git a/tests/common.sh b/tests/common.sh
+index d89cf83..6d5736a 100644
 --- a/tests/common.sh
 +++ b/tests/common.sh
 @@ -31,7 +31,7 @@ mkdir -p $SOCKDIR

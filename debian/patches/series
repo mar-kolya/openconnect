@@ -1,2 +1,5 @@
 fix-tests-shell-syntax.patch
 softhsm2-module-workaround.patch
+0003-Do-not-leak-memory-when-tun-was-not-created-yet.patch
+0004-Do-not-try-to-establish-DTLS-on-reconnect.patch
+0005-Drop-packets-that-are-too-large-without-dropping-con.patch

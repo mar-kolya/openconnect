@@ -1,17 +1,13 @@
-Description: Hardcode the Debian path to libsofthsm2.so
- A p11-kit module file is provided by the upstream test suite to ensure that
- the softhsm2 module is loaded. Unfortunately the filename is wrong on Debian,
- so this fixes the path. When #849158 is fixed, this workaround will no longer
- be necessary.
- .
- In the meantime, upstream has stopped shipping this config file, so the next
- release will either depend on softhsm2 having the file, or a different
- workaround applied to this package.
-Author: Mike Miller <mtmiller@debian.org>
-Forwarded: not-needed
-Last-Update: 2016-12-24
+From: Mike Miller <mtmiller@debian.org>
+Date: Tue, 9 May 2017 21:15:42 -0400
+Subject: softhsm2-module-workaround
+
 ---
-This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+ tests/.config/pkcs11/modules/softhsm2.module | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/.config/pkcs11/modules/softhsm2.module b/tests/.config/pkcs11/modules/softhsm2.module
+index 2f06e09..ac0334e 100644
 --- a/tests/.config/pkcs11/modules/softhsm2.module
 +++ b/tests/.config/pkcs11/modules/softhsm2.module
 @@ -1 +1 @@
