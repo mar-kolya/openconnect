@@ -1,3 +1,9 @@
+openconnect (7.08-1kolya1) zesty; urgency=medium
+
+  * Drop incoming packets that are larger than MTU
+
+ -- Nikolay Martynov <mar.kolya@gmail.com>  Tue, 09 May 2017 21:18:20 -0400
+
 openconnect (7.08-1) unstable; urgency=medium
 
   * New upstream version 7.08
