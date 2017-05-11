@@ -18,7 +18,7 @@ Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
  2 files changed, 11 insertions(+), 1 deletion(-)
 
 diff --git a/mainloop.c b/mainloop.c
-index e8e9a78..ab87c95 100644
+index e8e9a78..6cc9773 100644
 --- a/mainloop.c
 +++ b/mainloop.c
 @@ -94,6 +94,16 @@ int tun_mainloop(struct openconnect_info *vpninfo, int *timeout)
@@ -29,11 +29,11 @@ index e8e9a78..ab87c95 100644
 +		despite the fact that we have negotiated MTU with
 +		them. We will just drop such packets to avoid confusing
 +		other places */
-+		if (this->len > vpninfo->ip_info.mtu) {
++		/*if (this->len > vpninfo->ip_info.mtu) {
 +			vpn_progress(vpninfo, PRG_ERR, _("Got packet that is too long: %d, mtu: .\n"), this->len, vpninfo->ip_info.mtu);
 +			free(this);
 +			continue;
-+		}
++			}*/
 +
  		unmonitor_write_fd(vpninfo, tun);
  
