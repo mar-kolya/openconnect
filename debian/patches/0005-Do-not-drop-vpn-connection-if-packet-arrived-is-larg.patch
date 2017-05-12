@@ -1,0 +1,31 @@
+From: Nikolay Martynov <mar.kolya@gmail.com>
+Date: Tue, 9 May 2017 20:25:26 -0400
+Subject: Do not drop vpn connection if packet arrived is larger than MTU
+
+Sometimes server sends us packets that are larger than negotiated MTU.
+Current implementation bails out in this case.
+This patch makes openconnect to send such packets up the stack and continue.
+It looks like data stream from VPN server is generally correct - with
+exception of packet being too large, so we can continue parsing further
+packets.
+
+This improves connection stability.
+
+Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
+---
+ oncp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/oncp.c b/oncp.c
+index 3c7cfa1..40ac1de 100644
+--- a/oncp.c
++++ b/oncp.c
+@@ -1011,7 +1011,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
+ 				goto unknown_pkt;
+ 			}
+ 
+-			if (!iplen || iplen > vpninfo->ip_info.mtu || iplen > kmplen)
++			if (!iplen || iplen > kmplen)
+ 				goto badiplen;
+ 
+ 			if (iplen > vpninfo->cstp_pkt->len - 20)
