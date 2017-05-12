@@ -1,3 +1,9 @@
+openconnect (7.08-1kolya2) zesty; urgency=medium
+
+  * Inject large packets instead of dropping them
+
+ -- Nikolay Martynov <mar.kolya@gmail.com>  Thu, 11 May 2017 22:57:09 -0400
+
 openconnect (7.08-1kolya1) zesty; urgency=medium
 
   * Drop incoming packets that are larger than MTU
