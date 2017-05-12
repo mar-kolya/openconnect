@@ -4,28 +4,58 @@ Subject: Do not drop vpn connection if packet arrived is larger than MTU
 
 Sometimes server sends us packets that are larger than negotiated MTU.
 Current implementation bails out in this case.
-This patch makes openconnect to send such packets up the stack and continue.
-It looks like data stream from VPN server is generally correct - with
-exception of packet being too large, so we can continue parsing further
-packets.
+This patch makes openconnect to reserve space and handle incoming packets
+that have size up to (negotiated_mtu + 256)
 
 This improves connection stability.
 
 Signed-off-by: Nikolay Martynov <mar.kolya@gmail.com>
 ---
- oncp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ oncp.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
 diff --git a/oncp.c b/oncp.c
-index 3c7cfa1..40ac1de 100644
+index 3c7cfa1..cbbcc8e 100644
 --- a/oncp.c
 +++ b/oncp.c
-@@ -1011,7 +1011,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
+@@ -925,8 +925,12 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
+ 	   fairly unlikely situation, until the write backlog clears. */
+ 	while (1) {
+ 		int len, kmp, kmplen, iplen;
++		/* Some servers send us packets that are larger than
++		   negitiated MTU. We reserve some estra space to
++		   handle that */
++		int receive_mtu = vpninfo->ip_info.mtu + 256;
+ 
+-		len = vpninfo->ip_info.mtu + vpninfo->pkt_trailer;
++		len = receive_mtu + vpninfo->pkt_trailer;
+ 		if (!vpninfo->cstp_pkt) {
+ 			vpninfo->cstp_pkt = malloc(sizeof(struct pkt) + len);
+ 			if (!vpninfo->cstp_pkt) {
+@@ -967,7 +971,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
+ 		 * the amount of data received *including* the KMP header. */
+ 		len = oncp_record_read(vpninfo,
+ 				       vpninfo->cstp_pkt->oncp.kmp + vpninfo->cstp_pkt->len,
+-				       vpninfo->ip_info.mtu + 20 - vpninfo->cstp_pkt->len);
++				       receive_mtu + 20 - vpninfo->cstp_pkt->len);
+ 		if (!len)
+ 			break;
+ 		else if (len < 0) {
+@@ -1011,7 +1015,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
  				goto unknown_pkt;
  			}
  
 -			if (!iplen || iplen > vpninfo->ip_info.mtu || iplen > kmplen)
-+			if (!iplen || iplen > kmplen)
++			if (!iplen || iplen > receive_mtu || iplen > kmplen)
  				goto badiplen;
  
  			if (iplen > vpninfo->cstp_pkt->len - 20)
+@@ -1055,7 +1059,7 @@ int oncp_mainloop(struct openconnect_info *vpninfo, int *timeout)
+ 
+ 		case 302:
+ 			/* Should never happen; if it does we'll have to cope */
+-			if (kmplen > vpninfo->ip_info.mtu)
++			if (kmplen > receive_mtu)
+ 				goto unknown_pkt;
+ 			/* Probably never happens. We need it in its own record.
+ 			 * If I fix oncp_receive_espkeys() not to reuse cstp_pkt
