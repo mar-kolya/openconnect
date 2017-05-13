@@ -1,3 +1,9 @@
+openconnect (7.08-1kolya3) zesty; urgency=medium
+
+  * Do not go beoynd memory buffer
+
+ -- Nikolay Martynov <mar.kolya@gmail.com>  Fri, 12 May 2017 21:23:30 -0400
+
 openconnect (7.08-1kolya2) zesty; urgency=medium
 
   * Inject large packets instead of dropping them
